@@ -9,11 +9,11 @@ use PHPUnit\Framework\MockObject\Exception;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Events\ProxyPostInterceptorInterface;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Events\ProxyPreInterceptor;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Events\ProxyPreInterceptorInterface;
-use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\Events\ProxyEventFactory;
-use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\Events\ProxyEventFactoryInterface;
+use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\Events\InterceptorInterceptorProxyEventFactory;
+use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\Events\InterceptorProxyEventFactoryInterface;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\SmartReference\SmartReferenceFactory;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Factory\SmartReference\SmartReferenceFactoryInterface;
-use Pimcore\Bundle\StaticResolverBundle\Proxy\Service\EventProxyService;
+use Pimcore\Bundle\StaticResolverBundle\Proxy\Service\InterceptorProxyService;
 use Pimcore\Bundle\StaticResolverBundle\Proxy\Exceptions\InvalidServiceException;
 use Pimcore\Bundle\StaticResolverBundle\Tests\Unit\Proxy\TestData\FinalTestUser;
 use Pimcore\Bundle\StaticResolverBundle\Tests\Unit\Proxy\TestData\TestUser;
@@ -22,15 +22,15 @@ use ProxyManager\Proxy\AccessInterceptorValueHolderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use function PHPUnit\Framework\isInstanceOf;
 
-class EventProxyServiceTest extends Unit
+class InterceptorProxyServiceTest extends Unit
 {
     /**
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithPreAndPostInterceptors(): void
+    public function testCreateInterceptorProxyWithPreAndPostInterceptors(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -44,7 +44,7 @@ class EventProxyServiceTest extends Unit
                     return $smartProxy;
                 }
             );
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $service->getEventDispatcherProxy((new TestUser()), ['getFirstName'], ['getFirstName']);
     }
 
@@ -52,9 +52,9 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithPreInterceptors(): void
+    public function testCreateInterceptorProxyWithPreInterceptors(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -68,7 +68,7 @@ class EventProxyServiceTest extends Unit
                 return $smartProxy;
             }
         );
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $service->getEventDispatcherProxy((new TestUser()), ['getFirstName']);
     }
 
@@ -76,9 +76,9 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithPostInterceptors(): void
+    public function testCreateInterceptorProxyWithPostInterceptors(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -92,7 +92,7 @@ class EventProxyServiceTest extends Unit
                 return $smartProxy;
             }
         );
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $service->getEventDispatcherProxy((new TestUser()), [], ['getFirstName']);
     }
 
@@ -100,21 +100,21 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testFactoryCreateEventProxyWithPostInterceptors(): void
+    public function testFactoryCreateInterceptorProxyWithPostInterceptors(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())->method('dispatch');
 
-        $proxyEventFactoryMock = $this->createMock(ProxyEventFactoryInterface::class);
-        $proxyEventFactoryMock->expects(self::once())->method('createProxyPostEvent')->willReturnCallback(
+        $proxyEventFactoryMock = $this->createMock(InterceptorProxyEventFactoryInterface::class);
+        $proxyEventFactoryMock->expects(self::once())->method('createInterceptorPostEvent')->willReturnCallback(
             function () {
                 return $this->createMock(ProxyPostInterceptorInterface::class);
             }
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
         $proxy = $service->getEventDispatcherProxy((new TestUser()), [], ['getFirstName']);
         $proxy->getFirstName();
     }
@@ -123,15 +123,15 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithPreInterceptorsAndNoCustomResult(): void
+    public function testCreateInterceptorProxyWithPreInterceptorsAndNoCustomResult(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())->method('dispatch');
 
-        $proxyEventFactoryMock = $this->createMock(ProxyEventFactoryInterface::class);
-        $proxyEventFactoryMock->expects(self::once())->method('createProxyPreEvent')->willReturnCallback(
+        $proxyEventFactoryMock = $this->createMock(InterceptorProxyEventFactoryInterface::class);
+        $proxyEventFactoryMock->expects(self::once())->method('createInterceptorPreEvent')->willReturnCallback(
             function () {
                 $eventMock = $this->createMock(ProxyPreInterceptorInterface::class);
                 $eventMock->expects(self::once())->method('hasResponse')->willReturn(false);
@@ -140,7 +140,7 @@ class EventProxyServiceTest extends Unit
             }
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
         $proxy = $service->getEventDispatcherProxy((new TestUser()), ['getFirstName']);
         $proxy->getFirstName();
     }
@@ -149,15 +149,15 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithPreInterceptorsAndCustomResult(): void
+    public function testCreateInterceptorProxyWithPreInterceptorsAndCustomResult(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())->method('dispatch');
 
-        $proxyEventFactoryMock = $this->createMock(ProxyEventFactoryInterface::class);
-        $proxyEventFactoryMock->expects(self::once())->method('createProxyPreEvent')->willReturnCallback(
+        $proxyEventFactoryMock = $this->createMock(InterceptorProxyEventFactoryInterface::class);
+        $proxyEventFactoryMock->expects(self::once())->method('createInterceptorPreEvent')->willReturnCallback(
             function () {
                 $eventMock = $this->createMock(ProxyPreInterceptorInterface::class);
                 $eventMock->expects(self::once())->method('hasResponse')->willReturn(true);
@@ -166,7 +166,7 @@ class EventProxyServiceTest extends Unit
             }
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $proxyEventFactoryMock);
         $proxy = $service->getEventDispatcherProxy((new TestUser()), ['getFirstName']);
         $proxy->getFirstName();
     }
@@ -175,9 +175,9 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
-    public function testCreateEventProxyWithOutInterceptors(): void
+    public function testCreateInterceptorProxyWithOutInterceptors(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -191,7 +191,7 @@ class EventProxyServiceTest extends Unit
                 return $smartProxy;
             }
         );
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $service->getEventDispatcherProxy((new TestUser()));
     }
 
@@ -200,7 +200,7 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
     public function testTriggerEventByProxyWithPostInterceptors(): void
     {
@@ -219,7 +219,7 @@ class EventProxyServiceTest extends Unit
             'pimcore.bundle.staticresolverbundle.tests.unit.proxy.testdata.testuser.setlastname.post'
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $proxy = $service->getEventDispatcherProxy((new TestUser()), [], ['setLastName']);
         $proxy->setLastName('test');
     }
@@ -229,7 +229,7 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
     public function testTriggerEventByProxyWithPreInterceptors(): void
     {
@@ -248,7 +248,7 @@ class EventProxyServiceTest extends Unit
             'pimcore.bundle.staticresolverbundle.tests.unit.proxy.testdata.testuser.setlastname.pre'
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $proxy = $service->getEventDispatcherProxy((new TestUser()),['setLastName']);
         $proxy->setLastName('test');
     }
@@ -258,7 +258,7 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
     public function testCustomEventPreInterceptor(): void
     {
@@ -290,7 +290,7 @@ class EventProxyServiceTest extends Unit
             )
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $proxy = $service->getEventDispatcherProxy((new TestUser()),['setLastName'],[],'CustomEvent');
         $proxy->setLastName('test');
     }
@@ -300,7 +300,7 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
     public function testCustomEventPostInterceptor(): void
     {
@@ -330,7 +330,7 @@ class EventProxyServiceTest extends Unit
             )
         );
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $proxy = $service->getEventDispatcherProxy((new TestUser()),[],['setLastName'],'CustomEvent');
         $proxy->setLastName('test');
     }
@@ -339,20 +339,20 @@ class EventProxyServiceTest extends Unit
      * @throws Exception
      */
     #[Group('proxy')]
-    #[Group('eventproxy')]
+    #[Group('interceptorproxy')]
     #[Group('service')]
     public function testFailCreateProxyForFinalClass(): void
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->expectException(InvalidProxiedClassException::class);
         $smartFactory = new SmartReferenceFactory();
-        $service = new EventProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
+        $service = new InterceptorProxyService($eventDispatcher, $smartFactory, $this->getProxyEventFactory());
         $service->getEventDispatcherProxy((new FinalTestUser()),['getFirstName']);
     }
 
-    private function getProxyEventFactory(): ProxyEventFactoryInterface
+    private function getProxyEventFactory(): InterceptorProxyEventFactoryInterface
     {
-        return new ProxyEventFactory();
+        return new InterceptorInterceptorProxyEventFactory();
     }
 }
 
